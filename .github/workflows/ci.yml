@@ -29,3 +29,35 @@ jobs:
 
       - name: Test
         run: cargo test --all-targets
+
+      - name: Parse PowerShell installer
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "runtime/bootstrap_windows.ps1"),
+            [ref]$tokens,
+            [ref]$errors
+          )
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+
+  runtime-static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile Python runtime scripts
+        run: python -m compileall -q runtime
+
+      - name: Validate Bash installer syntax
+        run: bash -n runtime/bootstrap.sh
