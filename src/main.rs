@@ -1,15 +1,17 @@
+mod models;
 mod pipeline;
 mod system;
 
 use eframe::egui;
+use models::ModelPack;
 use pipeline::RuntimeProfile;
 use system::{Check, SystemReport};
 
 fn main() -> eframe::Result {
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([980.0, 720.0])
-            .with_min_inner_size([760.0, 560.0]),
+            .with_inner_size([980.0, 760.0])
+            .with_min_inner_size([760.0, 580.0]),
         ..Default::default()
     };
 
@@ -22,6 +24,7 @@ fn main() -> eframe::Result {
 
 struct StudioApp {
     profile: RuntimeProfile,
+    model_pack: ModelPack,
     input_video: String,
     output_dir: String,
     report: Option<SystemReport>,
@@ -31,6 +34,7 @@ impl Default for StudioApp {
     fn default() -> Self {
         Self {
             profile: RuntimeProfile::Local16Gb,
+            model_pack: ModelPack::LocalRecommended,
             input_video: String::new(),
             output_dir: String::new(),
             report: None,
@@ -79,14 +83,33 @@ impl eframe::App for StudioApp {
                     ui.label("Runs reconstruction and Harmonizer as separate GPU stages to keep peak VRAM down.");
                 }
                 RuntimeProfile::FullNuRec => {
-                    ui.label("Requires a Linux NuRec host with at least 24 GB VRAM; 48 GB+ is preferred by NVIDIA.");
+                    ui.label("Requires a Linux NuRec host with more than 24 GB VRAM; 48 GB+ is preferred by NVIDIA.");
                 }
             }
         });
 
         ui.add_space(10.0);
         ui.group(|ui| {
-            ui.heading("3. Capture");
+            ui.heading("3. Model/runtime pack");
+            egui::ComboBox::from_id_salt("model_pack")
+                .selected_text(self.model_pack.info().title)
+                .show_ui(ui, |ui| {
+                    for pack in ModelPack::ALL {
+                        ui.selectable_value(&mut self.model_pack, pack, pack.info().title);
+                    }
+                });
+
+            let info = self.model_pack.info();
+            ui.label(format!(
+                "Approx. payload: {:.2} GB; recommended free disk: {} GB",
+                info.model_download_gb, info.free_disk_gb
+            ));
+            ui.small(info.description);
+        });
+
+        ui.add_space(10.0);
+        ui.group(|ui| {
+            ui.heading("4. Capture");
             ui.horizontal(|ui| {
                 if ui.button("Choose video").clicked() {
                     if let Some(path) = rfd::FileDialog::new()
@@ -119,7 +142,7 @@ impl eframe::App for StudioApp {
 
         ui.add_space(10.0);
         ui.group(|ui| {
-            ui.heading("4. Planned pipeline");
+            ui.heading("5. Planned pipeline");
             for (index, step) in pipeline::plan(self.profile).iter().enumerate() {
                 ui.label(format!("{}. {}", index + 1, step.name));
                 ui.small(step.detail);
