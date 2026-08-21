@@ -118,9 +118,18 @@ install_harmonizer() {
     git -C "$UPSTREAM/harmonizer" pull --ff-only
   fi
 
-  if ! docker image inspect gss-harmonizer:latest >/dev/null 2>&1; then
-    docker build -t gss-harmonizer:latest -f "$UPSTREAM/harmonizer/Dockerfile.cosmos" "$UPSTREAM/harmonizer"
+  # NVIDIA's upstream Dockerfile intentionally declares ENTRYPOINT ["/bin/bash"].
+  # GSS invokes Python directly, so keep the upstream image intact and create a tiny
+  # derivative that clears that entrypoint. This prevents `python` from being treated
+  # as a Bash script name by Docker.
+  if ! docker image inspect gss-harmonizer-upstream:latest >/dev/null 2>&1; then
+    docker build \
+      -t gss-harmonizer-upstream:latest \
+      -f "$UPSTREAM/harmonizer/Dockerfile.cosmos" \
+      "$UPSTREAM/harmonizer"
   fi
+  printf 'FROM gss-harmonizer-upstream:latest\nENTRYPOINT []\n' \
+    | docker build -t gss-harmonizer:latest -
 }
 
 verify_runtime() {
@@ -135,6 +144,7 @@ print("GPU:", torch.cuda.get_device_name(0))
 print("gsplat:", getattr(gsplat, "__version__", "installed"))
 PY
   docker info >/dev/null
+  docker run --rm gss-harmonizer:latest python --version
   nvidia-ctk --version
   colmap -h >/dev/null
   ffmpeg -version >/dev/null
@@ -159,7 +169,7 @@ event setup 0.72 "Installing official SPZ Python bindings"
 step spz install_spz
 
 event setup 0.80 "Building NVIDIA Harmonizer container"
-step harmonizer install_harmonizer
+step harmonizer_v2 install_harmonizer
 
 event setup 0.94 "Verifying CUDA, gsplat, Docker, COLMAP and FFmpeg"
 verify_runtime
