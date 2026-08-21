@@ -103,10 +103,7 @@ impl RuntimeManager {
                 ],
             );
         let cuda_visible = runtime_ready
-            && command_success(
-                "wsl.exe",
-                &["-d", DISTRO, "-u", "root", "--", "nvidia-smi"],
-            );
+            && command_success("wsl.exe", &["-d", DISTRO, "-u", "root", "--", "nvidia-smi"]);
         let models_ready = runtime_ready
             && command_success(
                 "wsl.exe",
@@ -146,7 +143,9 @@ impl RuntimeManager {
             (_, false, _, _, _) => format!("{DISTRO} is not installed"),
             (_, _, false, _, _) => "GSS Linux runtime is not installed".to_owned(),
             (_, _, _, false, _) => "Runtime exists but CUDA is not visible inside WSL".to_owned(),
-            (_, _, _, _, false) => "Runtime ready; Harmonizer model pack not downloaded yet".to_owned(),
+            (_, _, _, _, false) => {
+                "Runtime ready; Harmonizer model pack not downloaded yet".to_owned()
+            }
             _ => "Local 3DGUT + Harmonizer runtime is ready".to_owned(),
         };
 
@@ -213,7 +212,8 @@ impl RuntimeManager {
                 return Err("Full NuRec is a separate >24 GB VRAM backend and is not installed by the local 16 GB model downloader.".to_owned())
             }
         };
-        let script = self.windows_to_wsl_path(&self.workspace.join("runtime/download_models.py"))?;
+        let script =
+            self.windows_to_wsl_path(&self.workspace.join("runtime/download_models.py"))?;
         Ok((
             "wsl.exe".to_owned(),
             vec![
@@ -313,7 +313,10 @@ impl RuntimeManager {
         }
         let translated = String::from_utf8_lossy(&output.stdout).trim().to_owned();
         if translated.is_empty() {
-            Err(format!("Could not convert Windows path: {}", path.display()))
+            Err(format!(
+                "Could not convert Windows path: {}",
+                path.display()
+            ))
         } else {
             Ok(translated)
         }
@@ -341,14 +344,20 @@ mod tests {
 
     #[test]
     fn embedded_runtime_has_pipeline() {
-        assert!(EMBEDDED_FILES.iter().any(|(name, _)| *name == "pipeline.py"));
+        assert!(
+            EMBEDDED_FILES
+                .iter()
+                .any(|(name, _)| *name == "pipeline.py")
+        );
         assert!(EMBEDDED_FILES.iter().any(|(name, _)| *name == "refine.py"));
     }
 
     #[test]
     fn default_workspace_has_stable_app_folder() {
         assert_eq!(
-            default_workspace().file_name().and_then(|value| value.to_str()),
+            default_workspace()
+                .file_name()
+                .and_then(|value| value.to_str()),
             Some("GaussianSplatStudio")
         );
     }
