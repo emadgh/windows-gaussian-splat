@@ -46,7 +46,9 @@ impl eframe::App for StudioApp {
 
         ui.group(|ui| {
             ui.heading("1. System");
-            ui.label("The Windows app orchestrates CUDA workloads through local tools or WSL2/Docker.");
+            ui.label(
+                "The Windows app orchestrates CUDA workloads through local tools or WSL2/Docker.",
+            );
             if ui.button("Run system check").clicked() {
                 self.report = Some(system::inspect());
             }
