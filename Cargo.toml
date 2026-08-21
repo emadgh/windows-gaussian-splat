@@ -1,6 +1,6 @@
 [package]
 name = "windows-gaussian-splat"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "Windows-first Gaussian Splat reconstruction and NVIDIA Harmonizer desktop studio"
 license = "MIT"
