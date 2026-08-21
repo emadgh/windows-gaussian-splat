@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelPack {
     LocalRecommended,
-    TemporalQuality,
+    NonTemporalJit,
     FullHarmonizer,
     FullNuRec,
 }
@@ -9,7 +9,7 @@ pub enum ModelPack {
 #[derive(Debug, Clone, Copy)]
 pub struct ModelPackInfo {
     pub title: &'static str,
-    pub model_download_gb: f32,
+    pub payload_download_gb: f32,
     pub free_disk_gb: u32,
     pub description: &'static str,
 }
@@ -17,7 +17,7 @@ pub struct ModelPackInfo {
 impl ModelPack {
     pub const ALL: [Self; 4] = [
         Self::LocalRecommended,
-        Self::TemporalQuality,
+        Self::NonTemporalJit,
         Self::FullHarmonizer,
         Self::FullNuRec,
     ];
@@ -25,31 +25,31 @@ impl ModelPack {
     pub fn info(self) -> ModelPackInfo {
         match self {
             Self::LocalRecommended => ModelPackInfo {
-                title: "Local / 16 GB — non-temporal Harmonizer",
-                // 1.45 GB Harmonizer JIT + 1.2 GB Cosmos DiT, excluding tokenizer metadata.
-                model_download_gb: 2.65,
+                title: "Local / 16 GB — public Harmonizer pipeline",
+                // 5.04 GB diffusion_harmonizer.pkl + 1.2 GB Cosmos model.pt,
+                // excluding tokenizer files. The same checkpoint can run with --nontemporal.
+                payload_download_gb: 6.24,
                 free_disk_gb: 120,
-                description: "Recommended first install for RTX 4070 Ti Super. Downloads only the non-temporal Harmonizer checkpoint and required Cosmos base weights where selective download is supported.",
+                description: "Recommended for RTX 4070 Ti Super. Uses NVIDIA's current public Harmonizer inference path. Starts in non-temporal mode on 16 GB, then enables temporal conditioning only after a local VRAM smoke test passes.",
             },
-            Self::TemporalQuality => ModelPackInfo {
-                title: "Temporal Harmonizer — highest quality",
-                // 5.04 GB temporal checkpoint + 1.2 GB Cosmos DiT, excluding tokenizer metadata.
-                model_download_gb: 6.24,
+            Self::NonTemporalJit => ModelPackInfo {
+                title: "Optional 1.45 GB non-temporal JIT checkpoint",
+                payload_download_gb: 1.45,
                 free_disk_gb: 120,
-                description: "Adds the 5.04 GB temporal checkpoint. The installer benchmarks it on the local GPU and can fall back to non-temporal mode if memory is insufficient.",
+                description: "Small NVIDIA JIT checkpoint intended for fast per-image enhancement/NuRec integration. Kept as an optional acceleration path rather than the default standalone refinement backend.",
             },
             Self::FullHarmonizer => ModelPackInfo {
-                title: "Full official Harmonizer model repository",
+                title: "Full official Harmonizer checkpoint helper",
                 // Harmonizer repo is 6.49 GB; NVIDIA's helper also downloads the Cosmos base repo.
-                model_download_gb: 10.1,
+                payload_download_gb: 10.1,
                 free_disk_gb: 120,
-                description: "Approximate lower bound when following NVIDIA's full checkpoint helper: 6.49 GB Harmonizer repo plus at least 3.6 GB of top-level Cosmos weights, before tokenizer files and container layers.",
+                description: "Lower-bound estimate when following NVIDIA's full helper: 6.49 GB Harmonizer repository plus at least 3.6 GB of top-level Cosmos weights, before tokenizer files and container layers.",
             },
             Self::FullNuRec => ModelPackInfo {
-                title: "Full NuRec runtime (optional / remote GPU)",
-                model_download_gb: 33.73,
+                title: "Full NuRec containers (optional / remote GPU)",
+                payload_download_gb: 33.73,
                 free_disk_gb: 160,
-                description: "Optional container payload estimate: ~13.31 GB NuRec main image + ~20.42 GB NuRec tools image, before unpacked layers and Harmonizer model cache. Not intended for the local 16 GB GPU.",
+                description: "Container payload estimate: ~13.31 GB NuRec main image + ~20.42 GB NuRec tools image, before unpacked layers and Harmonizer model cache. Not intended for the local 16 GB GPU.",
             },
         }
     }
