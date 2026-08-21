@@ -102,7 +102,7 @@ impl eframe::App for StudioApp {
             let info = self.model_pack.info();
             ui.label(format!(
                 "Approx. payload: {:.2} GB; recommended free disk: {} GB",
-                info.model_download_gb, info.free_disk_gb
+                info.payload_download_gb, info.free_disk_gb
             ));
             ui.small(info.description);
         });
