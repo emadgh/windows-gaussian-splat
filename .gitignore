@@ -1,0 +1,31 @@
+/target/
+/.idea/
+/.vscode/
+*.pdb
+*.log
+
+# Local project/capture outputs
+/projects/
+/captures/
+/outputs/
+/checkpoints/
+/models/
+/runtime-data/
+
+# Local credentials and runtime configuration
+.env
+.env.*
+!.env.example
+
+# Python/WSL helper caches
+__pycache__/
+*.pyc
+.venv/
+
+# Large 3D assets should never be committed by default
+*.ply
+*.spz
+*.lcc
+*.mp4
+*.mov
+*.mkv

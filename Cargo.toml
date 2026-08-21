@@ -1,0 +1,18 @@
+[package]
+name = "windows-gaussian-splat"
+version = "0.1.0"
+edition = "2024"
+description = "Windows-first Gaussian Splat reconstruction and NVIDIA Harmonizer desktop studio"
+license = "MIT"
+repository = "https://github.com/emadgh/windows-gaussian-splat"
+
+[dependencies]
+eframe = { version = "0.36.1", features = ["persistence"] }
+rfd = "0.15"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
