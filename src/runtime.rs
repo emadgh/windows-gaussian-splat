@@ -209,12 +209,6 @@ impl RuntimeManager {
         let pack_name = match pack {
             ModelPack::LocalRecommended => "recommended",
             ModelPack::FullHarmonizer => "full",
-            ModelPack::NonTemporalJit => {
-                return Err(
-                    "The optional legacy/JIT checkpoint is not the standalone refinement backend. Select the recommended public Harmonizer pack."
-                        .to_owned(),
-                )
-            }
             ModelPack::FullNuRec => {
                 return Err("Full NuRec is a separate >24 GB VRAM backend and is not installed by the local 16 GB model downloader.".to_owned())
             }
